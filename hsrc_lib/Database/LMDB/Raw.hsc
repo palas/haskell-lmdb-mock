@@ -889,7 +889,6 @@ _lockEnv env = do
     safeThread <- isCurrentThreadBound <||> isUnlockedEnv
     unless safeThread (throwIO _lockErr)
     tid <- myThreadId
-    traceM "Acquire"
     putMVar (_env_wlock env) tid
   where
     isUnlockedEnv = hasFlag (#const MDB_NOLOCK) <$> _mdb_env_get_flags_u env
@@ -900,7 +899,7 @@ _unlockEnv env =
     myThreadId >>= \ self ->
     let m = (_env_wlock env) in
     mask_ $
-        traceM "Release" >> takeMVar m >>= \ owner ->
+        takeMVar m >>= \ owner ->
         unless (self == owner) $
             putMVar m owner >> -- oops!
             throwIO _unlockErr
@@ -909,7 +908,7 @@ _try_unlockEnv env =
     myThreadId >>= \ self ->
     let m = (_env_wlock env) in
     mask_ $
-        traceM "TryRelease" >> tryTakeMVar m >>= maybe (return ()) (\own -> unless (self == own) $
+        tryTakeMVar m >>= maybe (return ()) (\own -> unless (self == own) $
                                                                     putMVar m own >> -- oops!
                                                                     throwIO _unlockErr)
 
