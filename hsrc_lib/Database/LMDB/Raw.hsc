@@ -144,7 +144,6 @@ import Data.Typeable
 import Data.Function (on)
 import Data.Maybe (isNothing)
 import Data.IORef
-import Debug.Trace
 
 #let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
 
