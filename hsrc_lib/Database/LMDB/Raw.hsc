@@ -75,7 +75,6 @@ module Database.LMDB.Raw
     , mdb_txn_env
     , mdb_txn_commit
     , mdb_txn_abort
-    , mdb_txn_finished
 
     -- * Databases
     , mdb_dbi_open
@@ -954,10 +953,6 @@ mdb_txn_renew txn =
     _mdb_txn_renew (_txn_ptr txn) >>= \ rc ->
     unless (0 == rc) (_throwLMDBErrNum "mdb_txn_renew" rc)
 
-mdb_txn_finished :: MDB_txn -> IO Bool
-mdb_txn_finished txn = do
-    val <- peek $ (_txn_ptr txn) `plusPtr` 124 :: IO CUInt
-    return (val == 1)
 {-
 
 -- I'm hoping to get a patch adding the following function into the main LMDB:
