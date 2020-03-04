@@ -1,9 +1,12 @@
+(NOTE: This project is no longer maintained here, since I'm not using Haskell much any more.)
+
 haskell-lmdb
 ============
 
 Bindings to LMDB from Haskell. This will be released as just the `lmdb` package on hackage, since the Haskell aspect is implicit. To install haskell-lmdb, you'll need to first install the lmdb development files (e.g. `sudo apt-get install liblmdb-dev` works in at least my 14.04 version of Ubuntu). 
 
 These bindings are developed against LMDB 0.9.10. If LMDB is updated in a significant way that e.g. adds new features or relaxes old constraints, and it isn't clear that I've already noticed, please file an issue report! 
+
 
 # Lightning MDB
 
