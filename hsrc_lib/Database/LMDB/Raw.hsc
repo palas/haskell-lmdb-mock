@@ -871,7 +871,7 @@ mdb_txn_begin env parent bReadOnly = mask_ $
 -- Note: this will also enforce that the caller is operating in a
 -- bound thread. So we can only _lockEnv from a bound thread, and
 -- we can only _unlockEnv from the same thread.
-_lockEnv, _unlockEnv, _try_unlockEnv :: MDB_env -> IO ()
+_lockEnv, _unlockEnv, _canUnlockEnv :: MDB_env -> IO ()
 _lockErr, _unlockErr :: LMDB_Error
 _lockErr = LMDB_Error
     { e_context = "locking LMDB for write in Haskell layer"
@@ -903,13 +903,18 @@ _unlockEnv env =
             putMVar m owner >> -- oops!
             throwIO _unlockErr
 
-_try_unlockEnv env =
+-- Check that the lock is owned by this thread.
+--
+-- By checking that the thread actually holds the lock
+-- when aborting or committing a transaction, we avoid
+-- the dangerous scenario of ending a write transaction
+-- twice, which can lead to segfaults.
+_canUnlockEnv env =
     myThreadId >>= \ self ->
     let m = (_env_wlock env) in
-    mask_ $
-        tryTakeMVar m >>= maybe (return ()) (\own -> unless (self == own) $
-                                                                    putMVar m own >> -- oops!
-                                                                    throwIO _unlockErr)
+    tryReadMVar m >>= \ mowner ->
+        unless (Just self == mowner) $
+            throwIO _unlockErr
 
 -- compute whether this transaction should hold the write lock.
 -- If it does, unlock it. Otherwise, return.
@@ -918,12 +923,10 @@ _unlockTxn txn =
     let bHasLock = _txn_rw txn && isNothing (_txn_p txn) in
     when bHasLock (_unlockEnv (_txn_env txn))
 
--- compute whether this transaction should hold the write lock.
--- If it does, unlock it. Otherwise, return.
-_try_unlockTxn :: MDB_txn -> IO ()
-_try_unlockTxn txn =
+_canUnlockTxn :: MDB_txn -> IO ()
+_canUnlockTxn txn =
     let bHasLock = _txn_rw txn && isNothing (_txn_p txn) in
-    when bHasLock (_try_unlockEnv (_txn_env txn))
+    when bHasLock (_canUnlockEnv (_txn_env txn))
 
 -- | Access environment for a transaction.
 mdb_txn_env :: MDB_txn -> MDB_env
@@ -932,6 +935,7 @@ mdb_txn_env = _txn_env
 -- | Commit a transaction. Don't use the transaction after this.
 mdb_txn_commit :: MDB_txn -> IO ()
 mdb_txn_commit txn = mask_ $
+    _canUnlockTxn txn >>
     _mdb_txn_commit (_txn_ptr txn) >>= \ rc ->
     _unlockTxn txn >>
     unless (0 == rc) (_throwLMDBErrNum "mdb_txn_commit" rc)
@@ -939,8 +943,9 @@ mdb_txn_commit txn = mask_ $
 -- | Abort a transaction. Don't use the transaction after this.
 mdb_txn_abort :: MDB_txn -> IO ()
 mdb_txn_abort txn = mask_ $
+    _canUnlockTxn txn >>
     _mdb_txn_abort (_txn_ptr txn) >>
-    _try_unlockTxn txn
+    _unlockTxn txn
 
 -- | Abort a read-only transaction, but don't destroy it.
 -- Keep it available for mdb_txn_renew.
