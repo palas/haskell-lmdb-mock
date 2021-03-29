@@ -1,4 +1,8 @@
-(NOTE: This project is no longer maintained here, since I'm not using Haskell much any more.)
+# Concordium fork haskell-lmdb
+
+The original source https://github.com/dmbarbour/haskell-lmdb
+
+See [./CONCORDIUM-FORK.md](./CONCORDIUM-FORK.md) for reasons for the fork.
 
 haskell-lmdb
 ============
