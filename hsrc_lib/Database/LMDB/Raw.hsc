@@ -103,6 +103,7 @@ module Database.LMDB.Raw
     , mdb_cursor_open
     , mdb_cursor_get
     , mdb_cursor_put
+    , mdb_cursor_put_ptr
     , mdb_cursor_del
     , mdb_cursor_close
     , mdb_cursor_txn
@@ -112,6 +113,7 @@ module Database.LMDB.Raw
     , mdb_cursor_open'
     , mdb_cursor_get'
     , mdb_cursor_put'
+    , mdb_cursor_put_ptr'
     , mdb_cursor_del'
     , mdb_cursor_close'
     , mdb_cursor_txn'
@@ -1304,6 +1306,16 @@ mdb_cursor_put' wf crs key val =
     _mdb_cursor_put' (_crs_ptr' crs) pKey pVal wf >>= \ rc ->
     r_cursor_put rc
 {-# INLINE mdb_cursor_put' #-}
+
+-- | Like 'mdb_cursor_put', but with direct control of how pointers to values
+-- are allocated, whether an argument is a nullPtr, and so on.
+mdb_cursor_put_ptr :: MDB_WriteFlags -> MDB_cursor -> Ptr MDB_val -> Ptr MDB_val -> IO Bool
+mdb_cursor_put_ptr wf crs pKey pVal = _mdb_cursor_put (_crs_ptr crs) pKey pVal wf >>= r_cursor_put
+{-# INLINE mdb_cursor_put_ptr #-}
+
+mdb_cursor_put_ptr' :: MDB_WriteFlags -> MDB_cursor' -> Ptr MDB_val -> Ptr MDB_val -> IO Bool
+mdb_cursor_put_ptr' wf crs pKey pVal = _mdb_cursor_put' (_crs_ptr' crs) pKey pVal wf >>= r_cursor_put
+{-# INLINE mdb_cursor_put_ptr' #-}
 
 -- | Delete the value at the cursor.
 mdb_cursor_del :: MDB_WriteFlags -> MDB_cursor -> IO ()
