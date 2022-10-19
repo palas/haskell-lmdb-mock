@@ -103,6 +103,7 @@ module Database.LMDB.Raw
     , mdb_cursor_open
     , mdb_cursor_get
     , mdb_cursor_put
+    , mdb_cursor_put_ptr
     , mdb_cursor_del
     , mdb_cursor_close
     , mdb_cursor_txn
@@ -112,6 +113,7 @@ module Database.LMDB.Raw
     , mdb_cursor_open'
     , mdb_cursor_get'
     , mdb_cursor_put'
+    , mdb_cursor_put_ptr'
     , mdb_cursor_del'
     , mdb_cursor_close'
     , mdb_cursor_txn'
@@ -1284,11 +1286,11 @@ mdb_cursor_get' op crs pKey pData = _mdb_cursor_get' (_crs_ptr' crs) pKey pData 
 --
 -- As with mdb_put, this returns True on MDB_SUCCESS and False for MDB_KEYEXIST,
 -- and otherwise throws an exception.
+--
+-- Note: This function is like 'mdb_cursor_put_ptr', but creates temporary
+-- pointers for keys and values.
 mdb_cursor_put :: MDB_WriteFlags -> MDB_cursor -> MDB_val -> MDB_val -> IO Bool
-mdb_cursor_put wf crs key val =
-    withKVPtrs key val $ \ pKey pVal ->
-    _mdb_cursor_put (_crs_ptr crs) pKey pVal wf >>= \ rc ->
-    r_cursor_put rc
+mdb_cursor_put wf crs key val = withKVPtrs key val $ \pKey pVal -> mdb_cursor_put_ptr wf crs pKey pVal
 {-# INLINE mdb_cursor_put #-}
 
 r_cursor_put :: CInt -> IO Bool
@@ -1299,11 +1301,18 @@ r_cursor_put rc =
 {-# INLINE r_cursor_put #-}
 
 mdb_cursor_put' :: MDB_WriteFlags -> MDB_cursor' -> MDB_val -> MDB_val -> IO Bool
-mdb_cursor_put' wf crs key val =
-    withKVPtrs key val $ \ pKey pVal ->
-    _mdb_cursor_put' (_crs_ptr' crs) pKey pVal wf >>= \ rc ->
-    r_cursor_put rc
+mdb_cursor_put' wf crs key val = withKVPtrs key val $ \ pKey pVal -> mdb_cursor_put_ptr' wf crs pKey pVal
 {-# INLINE mdb_cursor_put' #-}
+
+-- | Low-level 'mdb_cursor_put' operation, with direct control over pointers to
+-- keys and values.
+mdb_cursor_put_ptr :: MDB_WriteFlags -> MDB_cursor -> Ptr MDB_val -> Ptr MDB_val -> IO Bool
+mdb_cursor_put_ptr wf crs pKey pVal = _mdb_cursor_put (_crs_ptr crs) pKey pVal wf >>= r_cursor_put
+{-# INLINE mdb_cursor_put_ptr #-}
+
+mdb_cursor_put_ptr' :: MDB_WriteFlags -> MDB_cursor' -> Ptr MDB_val -> Ptr MDB_val -> IO Bool
+mdb_cursor_put_ptr' wf crs pKey pVal = _mdb_cursor_put' (_crs_ptr' crs) pKey pVal wf >>= r_cursor_put
+{-# INLINE mdb_cursor_put_ptr' #-}
 
 -- | Delete the value at the cursor.
 mdb_cursor_del :: MDB_WriteFlags -> MDB_cursor -> IO ()
