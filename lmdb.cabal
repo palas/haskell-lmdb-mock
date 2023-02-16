@@ -1,6 +1,6 @@
 cabal-version: 3.0
-name:          lmdb
-version:       0.2.5
+name:          cardano-lmdb
+version:       0.3.0.0
 synopsis:      Lightning MDB bindings
 category:      Database
 description:
@@ -27,11 +27,19 @@ Source-repository head
   location: http://github.com/input-output-hk/haskell-lmdb.git
 
 library
-  hs-source-dirs:     hsrc_lib
-  default-language:   Haskell2010
-  build-Depends:      base >= 4.6 && < 5
-                    , array
-  build-tool-depends: hsc2hs:hsc2hs
-  exposed-modules:    Database.LMDB.Raw
-  pkgconfig-depends:  lmdb
-  ghc-options:        -Wall -fprof-auto
+  hs-source-dirs:       hsrc_lib
+  default-language:     Haskell2010
+  build-Depends:        base >= 4.6 && < 5
+                      , array
+  build-tool-depends:   hsc2hs:hsc2hs
+  exposed-modules:      Database.LMDB.Raw
+  pkgconfig-depends:    lmdb
+  ghc-options:          -Wall
+                        -Wcompat
+                        -Wincomplete-uni-patterns
+                        -Wincomplete-record-updates
+                        -Wpartial-fields
+                        -Widentities
+                        -Wredundant-constraints
+                        -Wmissing-export-lists
+                        -Wno-unticked-promoted-constructors
