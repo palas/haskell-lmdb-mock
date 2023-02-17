@@ -51,6 +51,7 @@ jobs:
       id: record-deps
       run: |
         cabal build all --dry-run
+
     - name: Cache cabal store
       uses: actions/cache@v3
       env:
@@ -63,6 +64,7 @@ jobs:
           ${{ runner.os }}-${{ matrix.ghc }}-build-
           ${{ runner.os }}-${{ matrix.ghc }}-
           ${{ runner.os }}-
+
     - name: Install cabal dependencies
       run: cabal build --only-dependencies --enable-tests --enable-benchmarks all
 
