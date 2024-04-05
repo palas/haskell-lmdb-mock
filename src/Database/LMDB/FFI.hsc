@@ -158,7 +158,7 @@ foreign import capi unsafe "lmdb.h value MDB_MULTIPLE" mdbMultiple :: CUInt
 
 newtype MDB_cursor_op = MDB_cursor_op ( #type MDB_cursor_op )
   deriving (Show, Eq)
-#{enum MDB_cursor_op, MDB_cursor_op, MDB_FIRST, MDB_FIRST_DUP, MDB_GET_BOTH, MDB_GET_BOTH_RANGE, MDB_GET_CURRENT, MDB_GET_MULTIPLE, MDB_LAST, MDB_LAST_DUP, MDB_NEXT, MDB_NEXT_DUP, MDB_NEXT_MULTIPLE, MDB_NEXT_NODUP, MDB_PREV, MDB_PREV_DUP, MDB_PREV_NODUP, MDB_SET, MDB_SET_KEY, MDB_SET_RANGE}
+#{enum MDB_cursor_op, MDB_cursor_op, mdbFirst = MDB_FIRST, mdbFirstDup = MDB_FIRST_DUP, mdbGetBoth = MDB_GET_BOTH, mdbGetBothRange = MDB_GET_BOTH_RANGE, mdbGetCurrent = MDB_GET_CURRENT, mdbGetMultiple = MDB_GET_MULTIPLE, mdbLast = MDB_LAST, mdbLastDup = MDB_LAST_DUP, mdbNext = MDB_NEXT, mdbNextDup = MDB_NEXT_DUP, mdbNextMultiple = MDB_NEXT_MULTIPLE, mdbNextNodup = MDB_NEXT_NODUP, mdbPrev = MDB_PREV, mdbPrevDup = MDB_PREV_DUP, mdbPrevNodup = MDB_PREV_NODUP, mdbSet = MDB_SET, mdbSetKey = MDB_SET_KEY, mdbSetRange = MDB_SET_RANGE}
 
 instance Bounded MDB_cursor_op where
   minBound = mdbFirst

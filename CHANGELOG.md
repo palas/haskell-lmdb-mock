@@ -1,3 +1,11 @@
+## 0.4.0.1 — 2024-04-05
+
+### Patch
+
+* Add explicit Haskell names to the `#enum MDB_cursor_op`. This is a workaround
+  for https://github.com/haskell/hsc2hs/pull/89, because not having explicit
+  Haskell names prevents cross-compilation via ASM (for now).
+
 ## 0.4.0.0 — 2024-04-04
 
 ### Breaking
