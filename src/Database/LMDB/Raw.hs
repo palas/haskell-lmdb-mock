@@ -143,7 +143,6 @@ import           Data.Function      (on)
 import           Data.IORef
 import qualified Data.List          as L
 import           Data.Maybe         (isNothing)
-import           Data.Typeable
 import qualified Database.LMDB.FFI  as FFI
 import           Foreign
 import           Foreign.C
@@ -213,7 +212,7 @@ data LMDB_Error = LMDB_Error
     { e_context     :: String
     , e_description :: String
     , e_code        :: Either CInt MDB_ErrCode
-    } deriving (Eq, Show, Typeable)
+    } deriving (Eq, Show)
 instance Exception LMDB_Error
 
 -- | Opaque structure for LMDB environment.
