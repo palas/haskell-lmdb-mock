@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            cardano-lmdb
-version:         0.4.0.2
+version:         0.4.0.3
 synopsis:        Lightning MDB bindings
 category:        Database
 description:
@@ -33,7 +33,7 @@ source-repository head
 source-repository head
   type:     git
   location: http://github.com/input-output-hk/haskell-lmdb.git
-  tag:      cardano-lmdb-0.4.0.2
+  tag:      cardano-lmdb-0.4.0.3
 
 common warnings
   ghc-options:

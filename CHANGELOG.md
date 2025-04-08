@@ -1,3 +1,10 @@
+## 0.4.0.3 — 2025-04-08
+
+### Patch
+
+* Make it build with GHC `9.12`.
+* Remove `Typeable` from `LMDB_Error`.
+
 ## 0.4.0.2 — 2024-10-03
 
 ### Patch
