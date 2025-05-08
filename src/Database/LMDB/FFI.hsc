@@ -1,4 +1,3 @@
-{-# LANGUAGE CApiFFI #-}
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
@@ -99,103 +98,267 @@ module Database.LMDB.FFI (
   , MDB_msg_func, wrapMsgFunc
   ) where
 
-#include <lmdb.h>
-
 import Foreign
 import Foreign.C
+
 
 {-------------------------------------------------------------------------------
   Version Macros
 --------------------------------------------------------------------------------}
 
-foreign import capi unsafe "lmdb.h value MDB_VERSION_MAJOR" mdbVersionMajor :: CLong
-foreign import capi unsafe "lmdb.h value MDB_VERSION_MINOR" mdbVersionMinor :: CLong
-foreign import capi unsafe "lmdb.h value MDB_VERSION_PATCH" mdbVersionPatch :: CLong
+mdbVersionMajor :: CLong
+mdbVersionMajor = 0
+
+mdbVersionMinor :: CLong
+mdbVersionMinor = 9
+
+mdbVersionPatch :: CLong
+mdbVersionPatch = 70
 
 {-------------------------------------------------------------------------------
   Environment flags
 --------------------------------------------------------------------------------}
 
-foreign import capi unsafe "lmdb.h value MDB_FIXEDMAP" mdbFixedmap :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_NOSUBDIR" mdbNosubdir :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_NOSYNC" mdbNosync :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_RDONLY" mdbRdonly :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_NOMETASYNC" mdbNometasync :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_WRITEMAP" mdbWritemap :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_MAPASYNC" mdbMapasync :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_NOTLS" mdbNotls :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_NOLOCK" mdbNolock :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_NORDAHEAD" mdbNordahead :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_NOMEMINIT" mdbNomeminit :: CUInt
+mdbFixedmap :: CUInt
+mdbFixedmap = 0x01
+
+mdbNosubdir :: CUInt
+mdbNosubdir = 0x4000
+
+mdbNosync :: CUInt
+mdbNosync = 0x10000
+
+mdbRdonly :: CUInt
+mdbRdonly = 0x20000
+
+mdbNometasync :: CUInt
+mdbNometasync = 0x40000
+
+mdbWritemap :: CUInt
+mdbWritemap = 0x80000
+
+mdbMapasync :: CUInt
+mdbMapasync = 0x100000
+
+mdbNotls :: CUInt
+mdbNotls = 0x200000
+
+mdbNolock :: CUInt
+mdbNolock = 0x400000
+
+mdbNordahead :: CUInt
+mdbNordahead = 0x800000
+
+mdbNomeminit :: CUInt
+mdbNomeminit = 0x1000000
 
 {-------------------------------------------------------------------------------
   Database flags
 --------------------------------------------------------------------------------}
 
-foreign import capi unsafe "lmdb.h value MDB_REVERSEKEY" mdbReversekey :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_DUPSORT" mdbDupsort :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_INTEGERKEY" mdbIntegerkey :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_DUPFIXED" mdbDupfixed :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_INTEGERDUP" mdbIntegerdup :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_REVERSEDUP" mdbReversedup :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_CREATE" mdbCreate :: CUInt
+mdbReversekey :: CUInt
+mdbReversekey = 0x02
+
+mdbDupsort :: CUInt
+mdbDupsort = 0x04
+
+mdbIntegerkey :: CUInt
+mdbIntegerkey = 0x08
+
+mdbDupfixed :: CUInt
+mdbDupfixed = 0x10
+
+mdbIntegerdup :: CUInt
+mdbIntegerdup = 0x20
+
+mdbReversedup :: CUInt
+mdbReversedup = 0x40
+
+mdbCreate :: CUInt
+mdbCreate = 0x40000
 
 {-------------------------------------------------------------------------------
   Write flags
 --------------------------------------------------------------------------------}
 
-foreign import capi unsafe "lmdb.h value MDB_NOOVERWRITE" mdbNooverwrite :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_NODUPDATA" mdbNodupdata :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_CURRENT" mdbCurrent :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_RESERVE" mdbReserve :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_APPEND" mdbAppend :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_APPENDDUP" mdbAppenddup :: CUInt
-foreign import capi unsafe "lmdb.h value MDB_MULTIPLE" mdbMultiple :: CUInt
+mdbNooverwrite :: CUInt
+mdbNooverwrite = 0x10
+
+mdbNodupdata :: CUInt
+mdbNodupdata = 0x20
+
+mdbCurrent :: CUInt
+mdbCurrent = 0x40
+
+mdbReserve :: CUInt
+mdbReserve = 0x10000
+
+mdbAppend :: CUInt
+mdbAppend = 0x20000
+
+mdbAppenddup :: CUInt
+mdbAppenddup = 0x40000
+
+mdbMultiple :: CUInt
+mdbMultiple = 0x80000
 
 {-------------------------------------------------------------------------------
   Cursor get operations
 -------------------------------------------------------------------------------}
 
-newtype MDB_cursor_op = MDB_cursor_op ( #type MDB_cursor_op )
-  deriving (Show, Eq)
-#{enum MDB_cursor_op, MDB_cursor_op, mdbFirst = MDB_FIRST, mdbFirstDup = MDB_FIRST_DUP, mdbGetBoth = MDB_GET_BOTH, mdbGetBothRange = MDB_GET_BOTH_RANGE, mdbGetCurrent = MDB_GET_CURRENT, mdbGetMultiple = MDB_GET_MULTIPLE, mdbLast = MDB_LAST, mdbLastDup = MDB_LAST_DUP, mdbNext = MDB_NEXT, mdbNextDup = MDB_NEXT_DUP, mdbNextMultiple = MDB_NEXT_MULTIPLE, mdbNextNodup = MDB_NEXT_NODUP, mdbPrev = MDB_PREV, mdbPrevDup = MDB_PREV_DUP, mdbPrevNodup = MDB_PREV_NODUP, mdbSet = MDB_SET, mdbSetKey = MDB_SET_KEY, mdbSetRange = MDB_SET_RANGE}
+data MDB_cursor_op =
+    MDB_FIRST
+  | MDB_FIRST_DUP
+  | MDB_GET_BOTH
+  | MDB_GET_BOTH_RANGE
+  | MDB_GET_CURRENT
+  | MDB_GET_MULTIPLE
+  | MDB_LAST
+  | MDB_LAST_DUP
+  | MDB_NEXT
+  | MDB_NEXT_DUP
+  | MDB_NEXT_MULTIPLE
+  | MDB_NEXT_NODUP
+  | MDB_PREV
+  | MDB_PREV_DUP
+  | MDB_PREV_NODUP
+  | MDB_SET
+  | MDB_SET_KEY
+  | MDB_SET_RANGE
+
+mdbFirst :: MDB_cursor_op
+mdbFirst = MDB_FIRST
+
+mdbFirstDup :: MDB_cursor_op
+mdbFirstDup = MDB_FIRST_DUP
+
+mdbGetBoth :: MDB_cursor_op
+mdbGetBoth = MDB_GET_BOTH
+
+mdbGetBothRange :: MDB_cursor_op
+mdbGetBothRange = MDB_GET_BOTH_RANGE
+
+mdbGetCurrent :: MDB_cursor_op
+mdbGetCurrent = MDB_GET_CURRENT
+
+mdbGetMultiple :: MDB_cursor_op
+mdbGetMultiple = MDB_GET_MULTIPLE
+
+mdbLast :: MDB_cursor_op
+mdbLast = MDB_LAST
+
+mdbLastDup :: MDB_cursor_op
+mdbLastDup = MDB_LAST_DUP
+
+mdbNext :: MDB_cursor_op
+mdbNext = MDB_NEXT
+
+mdbNextDup :: MDB_cursor_op
+mdbNextDup = MDB_NEXT_DUP
+
+mdbNextMultiple :: MDB_cursor_op
+mdbNextMultiple = MDB_NEXT_MULTIPLE
+
+mdbNextNodup :: MDB_cursor_op
+mdbNextNodup = MDB_NEXT_NODUP
+
+mdbPrev :: MDB_cursor_op
+mdbPrev = MDB_PREV
+
+mdbPrevDup :: MDB_cursor_op
+mdbPrevDup = MDB_PREV_DUP
+
+mdbPrevNodup :: MDB_cursor_op
+mdbPrevNodup = MDB_PREV_NODUP
+
+mdbSet :: MDB_cursor_op
+mdbSet = MDB_SET
+
+mdbSetKey :: MDB_cursor_op
+mdbSetKey = MDB_SET_KEY
+
+mdbSetRange :: MDB_cursor_op
+mdbSetRange = MDB_SET_RANGE
 
 instance Bounded MDB_cursor_op where
-  minBound = mdbFirst
-  maxBound = mdbSetRange
+  minBound = MDB_FIRST
+  maxBound = MDB_SET_RANGE
 
 {-------------------------------------------------------------------------------
   Return codes
 --------------------------------------------------------------------------------}
 
-foreign import capi unsafe "lmdb.h value MDB_SUCCESS" mdbSuccess :: CInt
-foreign import capi unsafe "lmdb.h value MDB_KEYEXIST" mdbKeyexist :: CInt
-foreign import capi unsafe "lmdb.h value MDB_NOTFOUND" mdbNotfound :: CInt
-foreign import capi unsafe "lmdb.h value MDB_PAGE_NOTFOUND" mdbPageNotfound :: CInt
-foreign import capi unsafe "lmdb.h value MDB_CORRUPTED" mdbCorrupted :: CInt
-foreign import capi unsafe "lmdb.h value MDB_PANIC" mdbPanic :: CInt
-foreign import capi unsafe "lmdb.h value MDB_VERSION_MISMATCH" mdbVersionMismatch :: CInt
-foreign import capi unsafe "lmdb.h value MDB_INVALID" mdbInvalid :: CInt
-foreign import capi unsafe "lmdb.h value MDB_MAP_FULL" mdbMapFull :: CInt
-foreign import capi unsafe "lmdb.h value MDB_DBS_FULL" mdbDbsFull :: CInt
-foreign import capi unsafe "lmdb.h value MDB_READERS_FULL" mdbReadersFull :: CInt
-foreign import capi unsafe "lmdb.h value MDB_TLS_FULL" mdbTlsFull :: CInt
-foreign import capi unsafe "lmdb.h value MDB_TXN_FULL" mdbTxnFull :: CInt
-foreign import capi unsafe "lmdb.h value MDB_CURSOR_FULL" mdbCursorFull :: CInt
-foreign import capi unsafe "lmdb.h value MDB_PAGE_FULL" mdbPageFull :: CInt
-foreign import capi unsafe "lmdb.h value MDB_MAP_RESIZED" mdbMapResized :: CInt
-foreign import capi unsafe "lmdb.h value MDB_INCOMPATIBLE" mdbIncompatible :: CInt
-foreign import capi unsafe "lmdb.h value MDB_BAD_RSLOT" mdbBadRslot :: CInt
-foreign import capi unsafe "lmdb.h value MDB_BAD_TXN" mdbBadTxn :: CInt
-foreign import capi unsafe "lmdb.h value MDB_BAD_VALSIZE" mdbBadValsize :: CInt
-foreign import capi unsafe "lmdb.h value MDB_BAD_DBI" mdbBadDbi :: CInt
-foreign import capi unsafe "lmdb.h value MDB_LAST_ERRCODE" mdbLastErrcode :: CInt
+mdbSuccess :: CInt
+mdbSuccess = 0
+
+mdbKeyexist :: CInt
+mdbKeyexist = (-30799)
+
+mdbNotfound :: CInt
+mdbNotfound = (-30798)
+
+mdbPageNotfound :: CInt
+mdbPageNotfound = (-30797)
+
+mdbCorrupted :: CInt
+mdbCorrupted = (-30796)
+
+mdbPanic :: CInt
+mdbPanic = (-30795)
+
+mdbVersionMismatch :: CInt
+mdbVersionMismatch = (-30794)
+
+mdbInvalid :: CInt
+mdbInvalid = (-30793)
+
+mdbMapFull :: CInt
+mdbMapFull = (-30792)
+
+mdbDbsFull :: CInt
+mdbDbsFull = (-30791)
+
+mdbReadersFull :: CInt
+mdbReadersFull = (-30790)
+
+mdbTlsFull :: CInt
+mdbTlsFull = (-30789)
+
+mdbTxnFull :: CInt
+mdbTxnFull = (-30788)
+
+mdbCursorFull :: CInt
+mdbCursorFull = (-30787)
+
+mdbPageFull :: CInt
+mdbPageFull = (-30786)
+
+mdbMapResized :: CInt
+mdbMapResized = (-30785)
+
+mdbIncompatible :: CInt
+mdbIncompatible = (-30784)
+
+mdbBadRslot :: CInt
+mdbBadRslot = (-30783)
+
+mdbBadTxn :: CInt
+mdbBadTxn = (-30782)
+
+mdbBadValsize :: CInt
+mdbBadValsize = (-30781)
+
+mdbBadDbi :: CInt
+mdbBadDbi = (-30780)
+
+mdbLastErrcode :: CInt
+mdbLastErrcode = (-30779)
 
 {-------------------------------------------------------------------------------
   Data structures
 -------------------------------------------------------------------------------}
 
-data {-# CTYPE "struct MDB_stat" #-} MDB_stat = MDB_stat {
+data MDB_stat = MDB_stat {
       ms_psize :: {-# UNPACK #-} !CUInt
     , ms_depth :: {-# UNPACK #-} !CUInt
     , ms_branch_pages :: {-# UNPACK #-} !CSize
@@ -206,30 +369,18 @@ data {-# CTYPE "struct MDB_stat" #-} MDB_stat = MDB_stat {
     deriving (Show, Eq)
 
 instance Storable MDB_stat where
-    sizeOf _ = #{size struct MDB_stat}
-    alignment _ = #{alignment struct MDB_stat}
-    peek p = do
-        ms_psize <- #{peek struct MDB_stat, ms_psize} p
-        ms_depth <- #{peek struct MDB_stat, ms_depth} p
-        ms_branch_pages <- #{peek struct MDB_stat, ms_branch_pages} p
-        ms_leaf_pages <- #{peek struct MDB_stat, ms_leaf_pages} p
-        ms_overflow_pages <- #{peek struct MDB_stat, ms_overflow_pages} p
-        ms_entries <- #{peek struct MDB_stat, ms_entries} p
+    sizeOf _ = 0
+    alignment _ = 0
+    peek _ =
         return $! MDB_stat
-            { ms_psize
-            , ms_depth
-            , ms_branch_pages
-            , ms_leaf_pages
-            , ms_overflow_pages
-            , ms_entries
+            { ms_psize = 0
+            , ms_depth = 0
+            , ms_branch_pages = 0
+            , ms_leaf_pages = 0
+            , ms_overflow_pages = 0
+            , ms_entries = 0
             }
-    poke p x = do
-        #{poke struct MDB_stat, ms_psize} p (ms_psize x)
-        #{poke struct MDB_stat, ms_depth} p (ms_depth x)
-        #{poke struct MDB_stat, ms_branch_pages} p (ms_branch_pages x)
-        #{poke struct MDB_stat, ms_leaf_pages} p (ms_leaf_pages x)
-        #{poke struct MDB_stat, ms_overflow_pages} p (ms_overflow_pages x)
-        #{poke struct MDB_stat, ms_entries} p (ms_entries x)
+    poke _ _ = return ()
 
 data  {-# CTYPE "struct MDB_envinfo" #-} MDB_envinfo = MDB_envinfo
     { me_mapaddr :: {-# UNPACK #-} !(Ptr ())
@@ -241,65 +392,48 @@ data  {-# CTYPE "struct MDB_envinfo" #-} MDB_envinfo = MDB_envinfo
     } deriving (Eq, Show)
 
 instance Storable MDB_envinfo where
-    sizeOf _ = #{size struct MDB_envinfo}
-    alignment _ = #{alignment struct MDB_envinfo}
-    peek p = do
-        me_mapaddr <- #{peek struct MDB_envinfo, me_mapaddr} p
-        me_mapsize <- #{peek struct MDB_envinfo, me_mapsize} p
-        me_last_pgno <- #{peek struct MDB_envinfo, me_last_pgno} p
-        me_last_txnid <- #{peek struct MDB_envinfo, me_last_txnid} p
-        me_maxreaders <- #{peek struct MDB_envinfo, me_maxreaders} p
-        me_numreaders <- #{peek struct MDB_envinfo, me_numreaders} p
+    sizeOf _ = 0
+    alignment _ = 0
+    peek _ =
         return $! MDB_envinfo
-            { me_mapaddr
-            , me_mapsize
-            , me_last_pgno
-            , me_last_txnid
-            , me_maxreaders
-            , me_numreaders
+            { me_mapaddr = nullPtr
+            , me_mapsize = 0
+            , me_last_pgno = 0
+            , me_last_txnid = 0
+            , me_maxreaders = 0
+            , me_numreaders = 0
             }
-    poke p x = do
-        #{poke struct MDB_envinfo, me_mapaddr} p (me_mapaddr x)
-        #{poke struct MDB_envinfo, me_mapsize} p (me_mapsize x)
-        #{poke struct MDB_envinfo, me_last_pgno} p (me_last_pgno x)
-        #{poke struct MDB_envinfo, me_last_txnid} p (me_last_txnid x)
-        #{poke struct MDB_envinfo, me_maxreaders} p (me_maxreaders x)
-        #{poke struct MDB_envinfo, me_numreaders} p (me_numreaders x)
+    poke _ _ = return ()
 
 -- | A value stored in the database. Be cautious; committing the
 -- transaction that obtained a value should also invalidate it;
 -- avoid capturing MDB_val in a lazy value. A safe interface
 -- similar to STRef could be provided by another module.
-data {-# CTYPE "struct MDB_val" #-} MDB_val = MDB_val {
+data MDB_val = MDB_val {
       mv_size :: {-# UNPACK #-} !CSize
     , mv_data :: {-# UNPACK #-} !(Ptr ())
     }
 
 instance Storable MDB_val where
-  sizeOf _ = #{size struct MDB_val}
-  alignment _ = #{alignment struct MDB_val}
-  peek p = do
-      mv_size <- #{peek struct MDB_val, mv_size} p
-      mv_data <- #{peek struct MDB_val, mv_data} p
-      pure $! MDB_val { mv_size, mv_data }
-  poke p x = do
-      #{poke struct MDB_val, mv_size} p (mv_size x)
-      #{poke struct MDB_val, mv_data} p (mv_data x)
+  sizeOf _ = 0
+  alignment _ = 0
+  peek _ = pure $! MDB_val { mv_size = 0, mv_data = nullPtr}
+  poke _ _ = return ()
 
 -- opaque types
 
-data {-# CTYPE "struct MDB_env" #-} MDB_env
+data MDB_env
 
-data {-# CTYPE "struct MDB_txn" #-} MDB_txn
+data MDB_txn
 
-data {-# CTYPE "struct MDB_cursor" #-} MDB_cursor
+data MDB_cursor
 
 -- typedefs
 
-newtype MDB_mode_t = MDB_mode_t ( #type mdb_mode_t )
+newtype MDB_mode_t = MDB_mode_t CInt
   deriving (Show, Eq, Num, Storable)
 
-newtype MDB_dbi = MDB_dbi ( #type MDB_dbi )
+newtype MDB_dbi = MDB_dbi CUInt
   deriving (Show, Eq, Num, Storable)
 
 {-------------------------------------------------------------------------------
@@ -309,77 +443,180 @@ newtype MDB_dbi = MDB_dbi ( #type MDB_dbi )
 -- FFI
 --  'safe': higher overhead, thread juggling, allows callbacks into Haskell
 --  'unsafe': lower overhead, reduced concurrency, no callbacks into Haskell
-foreign import capi unsafe "lmdb.h mdb_version" mdb_version :: Ptr CInt -> Ptr CInt -> Ptr CInt -> IO CString
-foreign import capi unsafe "lmdb.h mdb_strerror" mdb_strerror :: CInt -> CString
+mdb_version :: Ptr CInt -> Ptr CInt -> Ptr CInt -> IO CString
+mdb_version _ _ _ = error "mdb_version: not implemented"
 
-foreign import capi "lmdb.h mdb_env_create" mdb_env_create :: Ptr (Ptr MDB_env) -> IO CInt
-foreign import capi "lmdb.h mdb_env_open" mdb_env_open :: Ptr MDB_env -> CString -> CUInt -> MDB_mode_t -> IO CInt
-foreign import capi "lmdb.h mdb_env_copy" mdb_env_copy :: Ptr MDB_env -> CString -> IO CInt
-foreign import capi "lmdb.h mdb_env_stat" mdb_env_stat :: Ptr MDB_env -> Ptr MDB_stat -> IO CInt
-foreign import capi "lmdb.h mdb_env_info" mdb_env_info :: Ptr MDB_env -> Ptr MDB_envinfo -> IO CInt
-foreign import capi "lmdb.h mdb_env_sync" mdb_env_sync :: Ptr MDB_env -> CInt -> IO CInt
-foreign import capi "lmdb.h mdb_env_close" mdb_env_close :: Ptr MDB_env -> IO ()
-foreign import capi "lmdb.h mdb_env_set_flags" mdb_env_set_flags :: Ptr MDB_env -> CUInt -> CInt -> IO CInt
-foreign import capi unsafe "lmdb.h mdb_env_get_flags" mdb_env_get_flags :: Ptr MDB_env -> Ptr CUInt -> IO CInt
-foreign import ccall unsafe "lmdb.h mdb_env_get_path" mdb_env_get_path :: Ptr MDB_env -> Ptr (Ptr CChar) -> IO CInt
-foreign import capi "lmdb.h mdb_env_set_mapsize" mdb_env_set_mapsize :: Ptr MDB_env -> CSize -> IO CInt
-foreign import capi "lmdb.h mdb_env_set_maxreaders" mdb_env_set_maxreaders :: Ptr MDB_env -> CUInt -> IO CInt
-foreign import capi unsafe "lmdb.h mdb_env_get_maxreaders" mdb_env_get_maxreaders :: Ptr MDB_env -> Ptr CUInt -> IO CInt
-foreign import capi "lmdb.h mdb_env_set_maxdbs" mdb_env_set_maxdbs :: Ptr MDB_env -> MDB_dbi -> IO CInt
-foreign import capi unsafe "lmdb.h mdb_env_get_maxkeysize" mdb_env_get_maxkeysize :: Ptr MDB_env -> IO CInt
+mdb_strerror :: CInt -> CString
+mdb_strerror _ = error "mdb_strerror: not implemented"
 
-foreign import capi "lmdb.h mdb_txn_begin" mdb_txn_begin :: Ptr MDB_env -> Ptr MDB_txn -> CUInt -> Ptr (Ptr MDB_txn) -> IO CInt
-foreign import capi "lmdb.h mdb_txn_commit" mdb_txn_commit :: Ptr MDB_txn -> IO CInt
-foreign import capi "lmdb.h mdb_txn_abort" mdb_txn_abort :: Ptr MDB_txn -> IO ()
+mdb_env_create :: Ptr (Ptr MDB_env) -> IO CInt
+mdb_env_create _ = error "mdb_env_create: not implemented"
 
-foreign import capi "lmdb.h mdb_dbi_open" mdb_dbi_open :: Ptr MDB_txn -> CString -> CUInt -> Ptr MDB_dbi -> IO CInt
-foreign import capi "lmdb.h mdb_stat" mdb_stat :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_stat -> IO CInt
-foreign import capi "lmdb.h mdb_dbi_flags" mdb_dbi_flags :: Ptr MDB_txn -> MDB_dbi -> Ptr CUInt -> IO CInt
-foreign import capi "lmdb.h mdb_dbi_close" mdb_dbi_close :: Ptr MDB_env -> MDB_dbi -> IO ()
-foreign import capi "lmdb.h mdb_drop" mdb_drop :: Ptr MDB_txn -> MDB_dbi -> CInt -> IO CInt
+mdb_env_open :: Ptr MDB_env -> CString -> CUInt -> MDB_mode_t -> IO CInt
+mdb_env_open _ _ _ _ = error "mdb_env_open: not implemented"
+
+mdb_env_copy :: Ptr MDB_env -> CString -> IO CInt
+mdb_env_copy _ _ = error "mdb_env_copy: not implemented"
+
+mdb_env_stat :: Ptr MDB_env -> Ptr MDB_stat -> IO CInt
+mdb_env_stat _ _ = error "mdb_env_stat: not implemented"
+
+mdb_env_info :: Ptr MDB_env -> Ptr MDB_envinfo -> IO CInt
+mdb_env_info _ _ = error "mdb_env_info: not implemented"
+
+mdb_env_sync :: Ptr MDB_env -> CInt -> IO CInt
+mdb_env_sync _ _ = error "mdb_env_sync: not implemented"
+
+mdb_env_close :: Ptr MDB_env -> IO ()
+mdb_env_close _ = error "mdb_env_close: not implemented"
+
+mdb_env_set_flags :: Ptr MDB_env -> CUInt -> CInt -> IO CInt
+mdb_env_set_flags _ _ _ = error "mdb_env_set_flags: not implemented"
+
+mdb_env_get_flags :: Ptr MDB_env -> Ptr CUInt -> IO CInt
+mdb_env_get_flags _ _ = error "mdb_env_get_flags: not implemented"
+
+mdb_env_get_path :: Ptr MDB_env -> Ptr (Ptr CChar) -> IO CInt
+mdb_env_get_path _ _ = error "mdb_env_get_path: not implemented"
+
+mdb_env_set_mapsize :: Ptr MDB_env -> CSize -> IO CInt
+mdb_env_set_mapsize _ _ = error "mdb_env_set_mapsize: not implemented"
+
+mdb_env_set_maxreaders :: Ptr MDB_env -> CUInt -> IO CInt
+mdb_env_set_maxreaders _ _ = error "mdb_env_set_maxreaders: not implemented"
+
+mdb_env_get_maxreaders :: Ptr MDB_env -> Ptr CUInt -> IO CInt
+mdb_env_get_maxreaders _ _ = error "mdb_env_get_maxreaders: not implemented"
+
+mdb_env_set_maxdbs :: Ptr MDB_env -> MDB_dbi -> IO CInt
+mdb_env_set_maxdbs _ _ = error "mdb_env_set_maxdbs: not implemented"
+
+mdb_env_get_maxkeysize :: Ptr MDB_env -> IO CInt
+mdb_env_get_maxkeysize _ = error "mdb_env_get_maxkeysize: not implemented"
+
+
+mdb_txn_begin :: Ptr MDB_env -> Ptr MDB_txn -> CUInt -> Ptr (Ptr MDB_txn) -> IO CInt
+mdb_txn_begin _ _ _ _ = error "mdb_txn_begin: not implemented"
+
+mdb_txn_commit :: Ptr MDB_txn -> IO CInt
+mdb_txn_commit _ = error "mdb_txn_commit: not implemented"
+
+mdb_txn_abort :: Ptr MDB_txn -> IO ()
+mdb_txn_abort _ = error "mdb_txn_abort: not implemented"
+
+
+mdb_dbi_open :: Ptr MDB_txn -> CString -> CUInt -> Ptr MDB_dbi -> IO CInt
+mdb_dbi_open _ _ _ _ = error "mdb_dbi_open: not implemented"
+
+mdb_stat :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_stat -> IO CInt
+mdb_stat _ _ _ = error "mdb_stat: not implemented"
+
+mdb_dbi_flags :: Ptr MDB_txn -> MDB_dbi -> Ptr CUInt -> IO CInt
+mdb_dbi_flags _ _ _ = error "mdb_dbi_flags: not implemented"
+
+mdb_dbi_close :: Ptr MDB_env -> MDB_dbi -> IO ()
+mdb_dbi_close _ _ = error "mdb_dbi_close: not implemented"
+
+mdb_drop :: Ptr MDB_txn -> MDB_dbi -> CInt -> IO CInt
+mdb_drop _ _ _ = error "mdb_drop: not implemented"
 
 -- comparisons may only be configured for a 'safe' MDB_dbi.
-foreign import capi "lmdb.h mdb_set_compare" mdb_set_compare :: Ptr MDB_txn -> MDB_dbi -> FunPtr MDB_cmp_func -> IO CInt
-foreign import capi "lmdb.h mdb_set_dupsort" mdb_set_dupsort :: Ptr MDB_txn -> MDB_dbi -> FunPtr MDB_cmp_func -> IO CInt
+mdb_set_compare :: Ptr MDB_txn -> MDB_dbi -> FunPtr MDB_cmp_func -> IO CInt
+mdb_set_compare _ _ _ = error "mdb_set_compare: not implemented"
 
-foreign import capi safe "lmdb.h mdb_cmp" mdb_cmp :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
-foreign import capi safe "lmdb.h mdb_dcmp" mdb_dcmp :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
-foreign import capi unsafe "lmdb.h mdb_cmp" mdb_cmp' :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
-foreign import capi unsafe "lmdb.h mdb_dcmp" mdb_dcmp' :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
+mdb_set_dupsort :: Ptr MDB_txn -> MDB_dbi -> FunPtr MDB_cmp_func -> IO CInt
+mdb_set_dupsort _ _ _ = error "mdb_set_dupsort: not implemented"
 
-foreign import capi safe "lmdb.h mdb_get" mdb_get :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
-foreign import capi safe "lmdb.h mdb_put" mdb_put :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> CUInt -> IO CInt
-foreign import capi safe "lmdb.h mdb_del" mdb_del :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
-foreign import capi unsafe "lmdb.h mdb_get" mdb_get' :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
-foreign import capi unsafe "lmdb.h mdb_put" mdb_put' :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> CUInt -> IO CInt
-foreign import capi unsafe "lmdb.h mdb_del" mdb_del' :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
+mdb_cmp :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
+mdb_cmp _ _ _ _ = error "mdb_cmp: not implemented"
+
+mdb_dcmp :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
+mdb_dcmp _ _ _ _ = error "mdb_dcmp: not implemented"
+
+
+mdb_cmp' :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
+mdb_cmp' _ _ _ _ = error "mdb_cmp': not implemented"
+
+mdb_dcmp' :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
+mdb_dcmp' _ _ _ _ = error "mdb_dcmp': not implemented"
+
+mdb_get :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
+mdb_get _ _ _ _ = error "mdb_get: not implemented"
+
+mdb_put :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> CUInt -> IO CInt
+mdb_put _ _ _ _ _ = error "mdb_put: not implemented"
+
+mdb_del :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
+mdb_del _ _ _ _ = error "mdb_del: not implemented"
+
+mdb_get' :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
+mdb_get' _ _ _ _ = error "mdb_get': not implemented"
+
+mdb_put' :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> CUInt -> IO CInt
+mdb_put' _ _ _ _ _ = error "mdb_put': not implemented"
+
+mdb_del' :: Ptr MDB_txn -> MDB_dbi -> Ptr MDB_val -> Ptr MDB_val -> IO CInt
+mdb_del' _ _ _ _ = error "mdb_del': not implemented"
 
 -- I dislike LMDB's cursor interface: one 'get' function with 18 special cases.
 -- Seems like it should be 18 functions.
-foreign import capi safe "lmdb.h mdb_cursor_open" mdb_cursor_open :: Ptr MDB_txn -> MDB_dbi -> Ptr (Ptr MDB_cursor) -> IO CInt
-foreign import capi safe "lmdb.h mdb_cursor_close" mdb_cursor_close :: Ptr MDB_cursor -> IO ()
-foreign import capi safe "lmdb.h mdb_cursor_get" mdb_cursor_get :: Ptr MDB_cursor -> Ptr MDB_val -> Ptr MDB_val -> MDB_cursor_op -> IO CInt
-foreign import capi safe "lmdb.h mdb_cursor_put" mdb_cursor_put :: Ptr MDB_cursor -> Ptr MDB_val -> Ptr MDB_val -> CUInt -> IO CInt
-foreign import capi safe "lmdb.h mdb_cursor_del" mdb_cursor_del :: Ptr MDB_cursor -> CUInt -> IO CInt
-foreign import capi safe "lmdb.h mdb_cursor_count" mdb_cursor_count :: Ptr MDB_cursor -> Ptr CSize -> IO CInt
+mdb_cursor_open :: Ptr MDB_txn -> MDB_dbi -> Ptr (Ptr MDB_cursor) -> IO CInt
+mdb_cursor_open _ _ _ = error "mdb_cursor_open: not implemented"
 
-foreign import capi unsafe "lmdb.h mdb_cursor_open" mdb_cursor_open' :: Ptr MDB_txn -> MDB_dbi -> Ptr (Ptr MDB_cursor) -> IO CInt
-foreign import capi unsafe "lmdb.h mdb_cursor_close" mdb_cursor_close' :: Ptr MDB_cursor -> IO ()
-foreign import capi unsafe "lmdb.h mdb_cursor_get" mdb_cursor_get' :: Ptr MDB_cursor -> Ptr MDB_val -> Ptr MDB_val -> MDB_cursor_op -> IO CInt
-foreign import capi unsafe "lmdb.h mdb_cursor_put" mdb_cursor_put' :: Ptr MDB_cursor -> Ptr MDB_val -> Ptr MDB_val -> CUInt -> IO CInt
-foreign import capi unsafe "lmdb.h mdb_cursor_del" mdb_cursor_del' :: Ptr MDB_cursor -> CUInt -> IO CInt
-foreign import capi unsafe "lmdb.h mdb_cursor_count" mdb_cursor_count' :: Ptr MDB_cursor -> Ptr CSize -> IO CInt
+mdb_cursor_close :: Ptr MDB_cursor -> IO ()
+mdb_cursor_close _ = error "mdb_cursor_close: not implemented"
 
-foreign import capi unsafe "lmdb.h mdb_txn_reset" mdb_txn_reset :: Ptr MDB_txn -> IO ()
-foreign import capi "lmdb.h mdb_txn_renew" mdb_txn_renew :: Ptr MDB_txn -> IO CInt
+mdb_cursor_get :: Ptr MDB_cursor -> Ptr MDB_val -> Ptr MDB_val -> MDB_cursor_op -> IO CInt
+mdb_cursor_get _ _ _ _ = error "mdb_cursor_get: not implemented"
 
-foreign import capi "lmdb.h mdb_reader_list" mdb_reader_list :: Ptr MDB_env -> FunPtr MDB_msg_func -> Ptr () -> IO CInt
-foreign import capi "lmdb.h mdb_reader_check" mdb_reader_check :: Ptr MDB_env -> Ptr CInt -> IO CInt
+mdb_cursor_put :: Ptr MDB_cursor -> Ptr MDB_val -> Ptr MDB_val -> CUInt -> IO CInt
+mdb_cursor_put _ _ _ _ = error "mdb_cursor_put: not implemented"
+
+mdb_cursor_del :: Ptr MDB_cursor -> CUInt -> IO CInt
+mdb_cursor_del _ _ = error "mdb_cursor_del: not implemented"
+
+mdb_cursor_count :: Ptr MDB_cursor -> Ptr CSize -> IO CInt
+mdb_cursor_count _ _ = error "mdb_cursor_count: not implemented"
+
+
+mdb_cursor_open' :: Ptr MDB_txn -> MDB_dbi -> Ptr (Ptr MDB_cursor) -> IO CInt
+mdb_cursor_open' _ _ _ = error "mdb_cursor_open': not implemented"
+
+mdb_cursor_close' :: Ptr MDB_cursor -> IO ()
+mdb_cursor_close' _ = error "mdb_cursor_close': not implemented"
+
+mdb_cursor_get' :: Ptr MDB_cursor -> Ptr MDB_val -> Ptr MDB_val -> MDB_cursor_op -> IO CInt
+mdb_cursor_get' _ _ _ _ = error "mdb_cursor_get': not implemented"
+
+mdb_cursor_put' :: Ptr MDB_cursor -> Ptr MDB_val -> Ptr MDB_val -> CUInt -> IO CInt
+mdb_cursor_put' _ _ _ _ = error "mdb_cursor_put': not implemented"
+
+mdb_cursor_del' :: Ptr MDB_cursor -> CUInt -> IO CInt
+mdb_cursor_del' _ _ = error "mdb_cursor_del': not implemented"
+
+mdb_cursor_count' :: Ptr MDB_cursor -> Ptr CSize -> IO CInt
+mdb_cursor_count' _ _ = error "mdb_cursor_count': not implemented"
+
+
+mdb_txn_reset :: Ptr MDB_txn -> IO ()
+mdb_txn_reset _ = error "mdb_txn_reset: not implemented"
+
+mdb_txn_renew :: Ptr MDB_txn -> IO CInt
+mdb_txn_renew _ = error "mdb_txn_renew: not implemented"
+
+
+mdb_reader_list :: Ptr MDB_env -> FunPtr MDB_msg_func -> Ptr () -> IO CInt
+mdb_reader_list _ _ _ = error "mdb_reader_list: not implemented"
+
+mdb_reader_check :: Ptr MDB_env -> Ptr CInt -> IO CInt
+mdb_reader_check _ _ = error "mdb_reader_check: not implemented"
 
 -- | User-defined comparison functions for keys.
 type MDB_cmp_func = Ptr MDB_val -> Ptr MDB_val -> IO CInt
-foreign import ccall "wrapper"  wrapCmpFn :: MDB_cmp_func -> IO (FunPtr MDB_cmp_func)
+wrapCmpFn :: MDB_cmp_func -> IO (FunPtr MDB_cmp_func)
+wrapCmpFn _ = error "wrapCmpFn: not implemented"
 
 -- callback function for reader list (used internally to this binding)
 type MDB_msg_func = CString -> Ptr () -> IO CInt
-foreign import ccall "wrapper" wrapMsgFunc :: MDB_msg_func -> IO (FunPtr MDB_msg_func)
+wrapMsgFunc :: MDB_msg_func -> IO (FunPtr MDB_msg_func)
+wrapMsgFunc _ = error "wrapMsgFunc: not implemented"

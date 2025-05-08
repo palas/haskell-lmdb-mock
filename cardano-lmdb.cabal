@@ -60,7 +60,6 @@ library ffi
   build-depends:      base >=4.14 && <4.22
   build-tool-depends: hsc2hs:hsc2hs
   exposed-modules:    Database.LMDB.FFI
-  pkgconfig-depends:  lmdb >=0.9 && <0.10
 
 test-suite test
   import:           warnings
